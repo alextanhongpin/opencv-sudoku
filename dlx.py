@@ -1,3 +1,22 @@
+# Data object, x.
+class X:
+    def __init__(self, column=None, row=None):
+        self.up = self.down = self.right = self.left = self
+        
+        # Points to the column object at the head of the relevant column.
+        self.column = column
+        self.row = row
+
+    def __str__(self):
+        return f'{self.column.name}:{self.row}'
+
+# Column object, y.
+class Y(X):
+    def __init__(self, row=None, name='', size=0):
+        self.size = size # The number of 1s in the column.
+        self.name = name # Symbolic identifier for printing the answers.
+        
+        X.__init__(self, self, row)
 
 class DLX:
     @staticmethod
