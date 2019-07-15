@@ -1,7 +1,11 @@
 
+import numpy as np
+from collections import defaultdict, namedtuple
+from dlx import DLX
+
 Metadata = namedtuple('Metadata', 'row col val')
 
-class Sudoku:
+class SudokuSolver:
     @staticmethod
     def constraint_index(row, col, val):
         '''
@@ -44,7 +48,7 @@ class Sudoku:
                 else:
                     values = [val]
                 for val in values:
-                    cell_c, row_c, col_c, grid_c = Sudoku.constraint_index(row, col, val)
+                    cell_c, row_c, col_c, grid_c = SudokuSolver.constraint_index(row, col, val)
                     mat = np.zeros(4*9*9) # Each constraints have 81 indices.
                     mat[cell_c + 0 * 81] = 1
                     mat[row_c + 1 * 81] = 1
@@ -53,3 +57,16 @@ class Sudoku:
                     result.append(mat)
                     metadata.append(Metadata(row=row, col=col, val=val))
         return np.array(result), metadata
+    
+    def __call__(self, sudoku):
+        board, metadata = SudokuSolver.parse(sudoku)
+        result = DLX.solve(board)
+        if result is None:
+            return None
+
+        # Draw back the solution.
+        solution = np.zeros((9, 9))
+        for row in result:
+            cell = metadata[row]
+            solution[cell.row, cell.col] = cell.val
+        return solution
