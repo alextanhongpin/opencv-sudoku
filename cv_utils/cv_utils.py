@@ -35,8 +35,8 @@ def AdaptiveThreshold(img):
                                   C=5)
     return thresh
 
-def Otsu(img):
-    thresh = cv.threshold(img, 0, 255, cv.THRESH_BINARY|cv.THRESH_OTSU)[1]
+def Otsu(img, thresh=127):
+    thresh = cv.threshold(img, thresh, 255, cv.THRESH_BINARY|cv.THRESH_OTSU)[1]
     return thresh
 
 def Inverse(img):
@@ -50,7 +50,7 @@ def Dilate(img, size=(3, 3), kernel=None):
         kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
     return cv.dilate(img, kernel)
 
-def Erode(img, size=(5, 5), kernel=None):
+def Erode(img, size=(3, 3), kernel=None):
     if kernel is None:
         kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
     return cv.erode(img, kernel)
@@ -84,6 +84,11 @@ def FindOuterContour(thresh):
             cnt = approx
             break
     return cnt
+
+def ExtractContourRegionOfInterest(im, cnt):
+    x, y, w, h = cv.boundingRect(cnt)
+    roi = im[y:y + h, x:x + w]
+    return roi
 
 def DrawContour(img, cnts, color=GREEN, width=1):
     draw(cv.drawContours(img.copy(), cnts, -1, color, width))
@@ -121,6 +126,8 @@ def HoughLinesP(img, color=(255, 255, 255), width=1):
     minLineLength = img.shape[1] * 0.2
     maxLineGap = 10
     lines = cv.HoughLinesP(img, 1, np.pi/180, 100, minLineLength, maxLineGap)
+    if lines is None:
+        return img
     for line in lines:
         for x1, y1, x2, y2 in line:
             cv.line(img, (x1,y1), (x2,y2), color, width)
