@@ -7,25 +7,29 @@ GREEN = (0, 255, 0)
 WHITE = (255, 255, 255)
 BLACK = (0, 0, 0)
 
-def draw(img):
+def draw(img, title='img'):
+    plt.title(title)
     plt.figure(figsize=(10, 10))
     plt.imshow(img, cmap='gray')
     
 def Gray(img):
     return cv.cvtColor(img, cv.COLOR_BGR2GRAY)
 
-def TopHat(img, size=(9, 9)):
+def TopHat(img, size=(9, 9), kernel=None):
     width, height = size
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, (width, height))
+    if kernel is None:
+        kernel = cv.getStructuringElement(cv.MORPH_RECT, (width, height))
     return cv.morphologyEx(img, cv.MORPH_TOPHAT, kernel)
 
-def Open(img, size=(9, 9)):
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
-    return cv.morphologyEx(img, cv.MORPH_OPEN, kernel)
+def Open(img, size=(9, 9), kernel=None, **kwargs):
+    if kernel is None:
+        kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
+    return cv.morphologyEx(img, cv.MORPH_OPEN, kernel, **kwargs)
 
-def Close(img, size=(9, 9)):
-    kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
-    return cv.morphologyEx(img, cv.MORPH_CLOSE, kernel)
+def Close(img, size=(9, 9), kernel=None, **kwargs):
+    if kernel is None:
+        kernel = cv.getStructuringElement(cv.MORPH_RECT, size)
+    return cv.morphologyEx(img, cv.MORPH_CLOSE, kernel, **kwargs)
 
 def AdaptiveThreshold(img):
     thresh = cv.adaptiveThreshold(img, 255, 
@@ -70,7 +74,7 @@ def MinAreaRect(contour):
 
 def FindOuterContour(thresh):
     cnts, _ = cv.findContours(thresh,
-                              cv.RETR_LIST,
+                              cv.RETR_EXTERNAL, # OR RETR_LIST
                               cv.CHAIN_APPROX_SIMPLE)
     cnts = sorted(cnts, 
                   key=cv.contourArea, 
@@ -79,10 +83,9 @@ def FindOuterContour(thresh):
     for c in cnts:
         # Approximate the contour.
         peri = cv.arcLength(c, True)
-        approx = cv.approxPolyDP(c, 0.02 * peri, True)
+        approx = cv.approxPolyDP(c, 0.04 * peri, True)
         if len(approx) == 4:
-            cnt = approx
-            break
+            return approx
     return cnt
 
 def ExtractContourRegionOfInterest(im, cnt):
@@ -153,6 +156,14 @@ def Sobel(src):
 
 def GaussianBlur(src, size=(3, 3)):
     return cv.GaussianBlur(src, size, -1)
+
+def Fill(src, point=(0, 0), color=(0, 0, 0)):
+    h, w = src.shape[:2]
+    
+    im_floodfill = src.copy()
+    cv.floodFill(im_floodfill, None, point, color)
+    
+    return im_floodfill
 
 def FloodFill(src, point=(0, 0), color=(0, 0, 0)):
     h, w = src.shape[:2]
