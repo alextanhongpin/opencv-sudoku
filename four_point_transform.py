@@ -25,7 +25,6 @@ def order_points(pts):
 
 def four_point_transform(img, pts):
     rect = order_points(pts)
-    print(rect)
 
     tl, tr, br, bl = rect
     
